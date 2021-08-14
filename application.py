@@ -40,6 +40,7 @@ app = Dash(
     title="Gradient Maker",
     update_title="Processing..."
 )
+application = app.server
 
 
 @server.before_first_request
@@ -1045,4 +1046,4 @@ def PageHandler(listv):
 
 # webbrowser.open('http://127.0.0.1:8888/')
 if __name__ == "__main__":
-    app.run_server()
+    application.run()
