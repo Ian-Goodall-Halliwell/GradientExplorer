@@ -1046,4 +1046,4 @@ def PageHandler(listv):
 
 # webbrowser.open('http://127.0.0.1:8888/')
 if __name__ == "__main__":
-    application.run()
+    application.run(debug=True)
