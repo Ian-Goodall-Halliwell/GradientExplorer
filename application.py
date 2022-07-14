@@ -1290,7 +1290,7 @@ def analyze(file):
                 iszip = True
 
 
-                with open('Coords.csv', 'w') as csv_file:  
+                with open('Coords.csv', 'w',newline='') as csv_file:  
                             writer = csv.writer(csv_file)
                             for key, value in dicts2.items():
                                 writer.writerow([key, value[0], value[1], value[2]])
@@ -2013,7 +2013,7 @@ def generate_graphs(n, ismade, data2, distances, input, iszip):
                             mode="markers",
                             text=Linuxfix(dn, -1),
                             textposition='top center',
-                            textfont={'size':40},
+                            textfont={'size':30},
                             hoverinfo="name",
                             #customdata=[Linuxfix(list(data2.keys())[0], -1)],
                             marker=dict(
@@ -2025,17 +2025,25 @@ def generate_graphs(n, ismade, data2, distances, input, iszip):
                         )
                         #fig.data[0]._parent.data[1].textfont.size = 20
                         fig.add_trace(ref1)
-                        # fig.update_layout(
-
-                        #     legend=dict(
-                        #         orientation="h",
-                        #         yanchor="bottom",
-                        #         y=1.02,
-                        #         xanchor="right",
-                        #         x=1)
-                        # )
-                    fig.update_xaxes(tickfont_size=30,showgrid=True, zeroline=True, gridcolor='LightGrey',zerolinecolor='LightGrey',range=[-0.8,0.8])
-                    fig.update_yaxes(tickfont_size=30,showgrid=True, zeroline=True, gridcolor='LightGrey',zerolinecolor='LightGrey',range=[-0.8,0.8])
+                        fig.update_xaxes(
+                            ticktext=["Unimodal", "Transmodal"],
+                            #tickvals=[-0.6, 0.6],
+                        )
+                        fig.update_yaxes(
+                            ticktext=["Task-positive", "Task-negative"],
+                            #tickvals=[-0.6, 0.6],
+                        )
+                        fig.update_layout(
+                            showlegend=True,
+                            legend=dict(
+                                orientation="h",
+                                yanchor="bottom",
+                                y=1.02,
+                                xanchor="right",
+                                x=1)
+                        )
+                    fig.update_xaxes(tickfont_size=30,showgrid=True, zeroline=True, gridcolor='LightGrey',zerolinecolor='LightGrey',range=[-0.6,0.6])
+                    fig.update_yaxes(tickfont_size=30,showgrid=True, zeroline=True, gridcolor='LightGrey',zerolinecolor='LightGrey',range=[-0.6,0.6])
                     fig.update_layout(xaxis_title_font={'size':40},yaxis_title_font={'size':40},showlegend=True)
                     if savefigs == True:
                         fig.write_html(dirname(abspath(__file__)) + "//Figure_Output//" + abc.split(".")[0] + ".html")

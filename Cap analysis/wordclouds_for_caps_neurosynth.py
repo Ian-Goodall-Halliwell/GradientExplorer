@@ -11,7 +11,7 @@ import os
 import pandas as pd
 import numpy as np
 from collections import OrderedDict
-
+from sklearn import preprocessing
 from wordcloud import WordCloud
 import matplotlib.cm as cm
 import matplotlib.colors as mcolor
@@ -24,13 +24,15 @@ def wordclouder(neurosynth_dict, display,key, savefile=False):
     """
      # Loop over loading dictionaries - 1 dataframe per iteration
     df = pd.DataFrame(neurosynth_dict) 
-    df=(df-df.min())/(df.max()-df.min())
+    #df=(df-df.min())/(df.max()-df.min())
     principle_vector = np.array(df, dtype =float) # turn df into array
     pv_in_hex= []
     vmax = np.abs(principle_vector).max() #get the maximum absolute value in array
     vmin = -vmax #minimu 
     for i in range(principle_vector.shape[1]): # loop through each column (cap)
-        rescale = (principle_vector  [:,i] - vmin) / (vmax - vmin) # rescale scores 
+        scaler = preprocessing.MinMaxScaler()
+        rescale = scaler.fit_transform(principle_vector)
+        #rescale = (principle_vector  [:,i] - vmin) / (vmax - vmin) # rescale scores 
         colors_hex = []
         for c in cm.RdBu_r(rescale): 
             colors_hex.append(mcolor.to_hex(c)) # adds colour codes (hex) to list
@@ -66,7 +68,7 @@ def wordclouder(neurosynth_dict, display,key, savefile=False):
         # create wordcloud object
         wc = WordCloud(background_color="white", color_func=color_func, 
                     width=400, height=400, prefer_horizontal=1, 
-                    min_font_size=8, max_font_size=200
+                    min_font_size=30, max_font_size=200
                     )
         # generate wordcloud from loadings in frequency dict
         wc = wc.generate_from_frequencies(freq_dict)
