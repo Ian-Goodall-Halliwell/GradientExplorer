@@ -12,7 +12,7 @@ sources = [
     ["v5-fulldataset.csv", "v5-fulldataset.json"],
 ]
 
-empty = True
+empty = False
 
 
 def savefig(path, source, source2, empty):
