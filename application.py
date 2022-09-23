@@ -101,7 +101,8 @@ app.layout = dbc.Container(
             multiple=True,
             children=dbc.Spinner(
                 html.Div(
-                    ["Click or drag a file here to upload it."], id="loading-output",
+                    ["Click or drag a file here to upload it."],
+                    id="loading-output",
                 )
             ),
         ),
@@ -126,7 +127,10 @@ app.layout = dbc.Container(
             className="mb-3",
             disabled=True,
             children=dbc.Spinner(
-                html.Div(["Place scan into gradient space"], id="loading-output2",)
+                html.Div(
+                    ["Place scan into gradient space"],
+                    id="loading-output2",
+                )
             ),
         ),
         dbc.Tabs(
@@ -140,7 +144,10 @@ app.layout = dbc.Container(
             id="tabs",
             active_tab="50-Topic Dataset",
         ),
-        html.Div(id="tab-content", className="p-4",),
+        html.Div(
+            id="tab-content",
+            className="p-4",
+        ),
     ],
     style={"max-width": "95vw", "width": "80vw"},
 )
@@ -150,7 +157,9 @@ app.layout = dbc.Container(
     Output("loading-output4", "children"),
     Output("tab-content", "children"),
     Input("tabs", "active_tab"),
-    [Input("store1", "data"),],
+    [
+        Input("store1", "data"),
+    ],
     Input("geng", "data"),
     Input("cl", "data"),
     Input("showbar1", "data"),
@@ -2249,7 +2258,9 @@ def GenGraphsInit(figwanted, dir=dirname(abspath(__file__)) + "//Fig_Jsons"):
 
 
 @app.callback(
-    [Output("store1", "data"),],
+    [
+        Output("store1", "data"),
+    ],
     Output("geng", "data"),
     Output("cl", "data"),
     Output("loading-output3", "children"),
@@ -2261,7 +2272,7 @@ def GenGraphsInit(figwanted, dir=dirname(abspath(__file__)) + "//Fig_Jsons"):
     Input("iszipped", "data"),
 )
 def generate_graphs(n, ismade, data2, distances, input, iszip):
-    savefigs = True
+    savefigs = False
     nopoints = True
     cl1 = None
     disornot = None
@@ -2377,7 +2388,10 @@ def generate_graphs(n, ismade, data2, distances, input, iszip):
                         hoverinfo=["text"],
                         hovertext=list(data2.keys())[0],
                         marker=dict(
-                            size=12, color="blue", symbol="diamond", opacity=0.95,
+                            size=12,
+                            color="blue",
+                            symbol="diamond",
+                            opacity=0.95,
                         ),
                     )
 
@@ -2416,7 +2430,10 @@ def generate_graphs(n, ismade, data2, distances, input, iszip):
                         hoverinfo="text",
                         customdata=[Linuxfix(list(data2.keys())[0], -1)],
                         marker=dict(
-                            size=12, color="blue", symbol="diamond", opacity=0.95,
+                            size=12,
+                            color="blue",
+                            symbol="diamond",
+                            opacity=0.95,
                         ),
                     )
 
