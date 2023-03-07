@@ -1,4 +1,3 @@
-from mmap import ALLOCATIONGRANULARITY
 from dash.dash import no_update
 from flask import Flask
 from os.path import exists, join, dirname, abspath
@@ -8,8 +7,8 @@ from dash_bootstrap_components.themes import COSMO
 from flask import send_from_directory
 from dash import Dash
 import dash_bootstrap_components as dbc
-from dash import html as html
-from dash import dcc as dcc
+import dash_html_components as html
+import dash_core_components as dcc
 from dash.dependencies import Input, Output, State
 from base64 import decodebytes
 from zipfile import ZipFile
@@ -17,11 +16,11 @@ from os import remove, walk, listdir, sep
 from nilearn.masking import apply_mask, compute_background_mask
 from nilearn.image import resample_to_img
 from nibabel import load as niload
-from scipy.stats import pearsonr
+from scipy.stats import pearsonr, spearmanr
 from numpy import squeeze, array, abs
 from wordcloud import WordCloud
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from matplotlib.cm import RdBu_r
+from matplotlib.cm import RdBu_r, YlOrRd_r, plasma_r
 from matplotlib.colors import to_hex
 from shutil import rmtree
 from plotly.io import read_json
@@ -32,6 +31,7 @@ import pandas as pd
 from sklearn import preprocessing
 import csv
 from nilearn.plotting import plot_img_comparison
+import numpy as np
 
 red_button_style = {"color": "primary"}
 
@@ -82,7 +82,7 @@ app.layout = dbc.Container(
         html.H5(
             dcc.Markdown(
                 """
-            Upload an fMRI file or .zip archive containing fMRI files in a nibabel-compatible format and wait for the file(s) to be processed. When the processing is done, click the blue button below. Uploading single files will also generate wordclouds of the top 10 closest terms/topics. As of right now, these are stored in your browser's cache, and require you to **clear your cache to generate new wordclouds**. If you have any problems that can't be fixed by a refresh please email me at <goodallhalliwell.i@queensu.ca>.
+            Upload an fMRI file or .zip archive containing fMRI files in a nibabel-compatible format and wait for the file(s) to be processed. When the processing is done, click the blue button below. Uploading single files will also generate wordclouds of the top 10 closest terms/topics. As of right now, these are stored in your browser's cache, and may require you to **clear your cache to generate new wordclouds**. If you have any problems that can't be fixed by a refresh please email me at <goodallhalliwell.i@queensu.ca>.
         """
             )
         ),
@@ -101,8 +101,7 @@ app.layout = dbc.Container(
             multiple=True,
             children=dbc.Spinner(
                 html.Div(
-                    ["Click or drag a file here to upload it."],
-                    id="loading-output",
+                    ["Click or drag a file here to upload it."], id="loading-output",
                 )
             ),
         ),
@@ -127,10 +126,7 @@ app.layout = dbc.Container(
             className="mb-3",
             disabled=True,
             children=dbc.Spinner(
-                html.Div(
-                    ["Place scan into gradient space"],
-                    id="loading-output2",
-                )
+                html.Div(["Place scan into gradient space"], id="loading-output2",)
             ),
         ),
         dbc.Tabs(
@@ -144,10 +140,7 @@ app.layout = dbc.Container(
             id="tabs",
             active_tab="50-Topic Dataset",
         ),
-        html.Div(
-            id="tab-content",
-            className="p-4",
-        ),
+        html.Div(id="tab-content", className="p-4",),
     ],
     style={"max-width": "95vw", "width": "80vw"},
 )
@@ -157,9 +150,7 @@ app.layout = dbc.Container(
     Output("loading-output4", "children"),
     Output("tab-content", "children"),
     Input("tabs", "active_tab"),
-    [
-        Input("store1", "data"),
-    ],
+    [Input("store1", "data"),],
     Input("geng", "data"),
     Input("cl", "data"),
     Input("showbar1", "data"),
@@ -2000,22 +1991,31 @@ def analyze(file):
                             ),
                             mask,
                         )
-                        min_max_scaler = preprocessing.MinMaxScaler()
-                        np_scaled = min_max_scaler.fit_transform(
-                            maskedSeries.astype("float64").reshape(-1, 1)
+                        scaler = preprocessing.StandardScaler()
+                        np_scaled = np.squeeze(
+                            scaler.fit_transform(
+                                maskedSeries.astype(np.float64).reshape(-1, 1)
+                            )
                         )
-                        min_max_scaler1 = preprocessing.MinMaxScaler()
-                        np_scaled1 = min_max_scaler1.fit_transform(
-                            GradientFrame[0].astype("float64").reshape(-1, 1)
+                        # min_max_scaler1 = preprocessing.MinMaxScaler()
+                        np_scaled1 = np.squeeze(
+                            scaler.fit_transform(
+                                GradientFrame[0].astype(np.float64).reshape(-1, 1)
+                            )
                         )
-                        min_max_scaler2 = preprocessing.MinMaxScaler()
-                        np_scaled2 = min_max_scaler2.fit_transform(
-                            GradientFrame[1].astype("float64").reshape(-1, 1)
+                        # min_max_scaler2 = preprocessing.MinMaxScaler()
+                        np_scaled2 = np.squeeze(
+                            scaler.fit_transform(
+                                GradientFrame[1].astype(np.float64).reshape(-1, 1)
+                            )
                         )
-                        min_max_scaler3 = preprocessing.MinMaxScaler()
-                        np_scaled3 = min_max_scaler3.fit_transform(
-                            GradientFrame[2].astype("float64").reshape(-1, 1)
+                        # min_max_scaler3 = preprocessing.MinMaxScaler()
+                        np_scaled3 = np.squeeze(
+                            scaler.fit_transform(
+                                GradientFrame[2].astype(np.float64).reshape(-1, 1)
+                            )
                         )
+
                         Corrs = [
                             pearsonr(np_scaled1, np_scaled)[0],
                             pearsonr(np_scaled2, np_scaled)[0],
@@ -2050,11 +2050,11 @@ def analyze(file):
                             wc = WordCloud(
                                 background_color="white",
                                 color_func=color_func,
-                                width=400,
-                                height=400,
+                                width=600,
+                                height=600,
                                 prefer_horizontal=1,
                                 min_font_size=8,
-                                max_font_size=200,
+                                max_font_size=4000,
                             )
                             wc = wc.generate_from_frequencies(frequencies=freq_dict)
                             wc.to_file(
@@ -2140,28 +2140,40 @@ def analyzefunc(Corrs, i):
     ).set_index("Term")"""
     # dfdists = pd.DataFrame(columns=["Term", "Distance"])
     dfdists = []
-
+    dsfd = []
     for ind, v in enumerate(Dframe):
         rowval = v[1].strip("][").split(", ")
         for id in enumerate(rowval):
             rowval[id[0]] = float(rowval[id[0]])
-        # distance = distance_finder(Corrs, rowval)
+        distance = distance_finder(Corrs, rowval)
+        dsfd.append([v[0], distance])
         listst = [v[0], rowval]
         dfdists.append(listst)
         listst = []
     Alldistanc = [x[1] for x in dfdists]
-    dfsorted = sorted(dfdists, key=takeSecond, reverse=True)
-    scaler = StandardScaler()
-    test = array(Extract(dfsorted, 1)).reshape(-1, 1)
-    dfsorted1 = [Extract(dfsorted, 0), scaler.fit_transform(test).tolist()]
-    top10 = [Extract2(dfsorted1[0], 10), Extract2(dfsorted1[1], 10)]
+    # dfsorted = sorted(dfdists, key=takeSecond, reverse=True)
+    # scaler = StandardScaler()
+    # test = array(Extract(dfsorted, 1)).reshape(-1, 1)
+    # dfsorted1 = [Extract(dfsorted, 0), scaler.fit_transform(test).tolist()]
+    dfdict = {x: y for x, y in dsfd}
+    top10 = sorted(dfdict.items(), key=lambda x: x[1])
+
+    top10 = top10[:10]
+    top10s = [x[1] for x in top10]
+    top10n = [x[0] for x in top10]
+    top10 = [top10n, top10s]
+
+    # top10
+    # top10 = [Extract2(dfsorted1[0], 10), Extract2(dfsorted1[1], 10)]
 
     # Dictver = np.array(top10["Distance"])
     # Dictver = dict(enumerate(Dictver.flatten(), 1))
 
     df = array(top10[1])
-    absolute = abs(df)  # make absolute
-    integer = 100 * absolute  # make interger
+    absolute = MinMaxScaler().fit_transform(df.reshape(1, -1))
+    # absolute = abs(df)  # make absolute
+
+    integer = 100 * 1 / absolute  # make interger
     integer = squeeze(integer.astype(int))
     principle_vector = array(df, dtype=float).reshape(-1, 1)  # turn df into array
     pv_in_hex = []
@@ -2170,9 +2182,9 @@ def analyzefunc(Corrs, i):
     vmin = -vmax  # minimu
     # loop through each column (cap)
     for g in range(principle_vector.shape[1]):
-        rescale = (principle_vector[:, g] - vmin) / (vmax - vmin)  # rescale scores
+        rescale = MinMaxScaler().fit_transform(principle_vector)  # rescale scores
         colors_hex = []
-        for c in RdBu_r(rescale):
+        for c in plasma_r(rescale):
             colors_hex.append(to_hex(c))  # adds colour codes (hex) to list
         pv_in_hex.append(colors_hex)
         # add all colour codes for each item on all caps
@@ -2258,9 +2270,7 @@ def GenGraphsInit(figwanted, dir=dirname(abspath(__file__)) + "//Fig_Jsons"):
 
 
 @app.callback(
-    [
-        Output("store1", "data"),
-    ],
+    [Output("store1", "data"),],
     Output("geng", "data"),
     Output("cl", "data"),
     Output("loading-output3", "children"),
@@ -2338,8 +2348,10 @@ def generate_graphs(n, ismade, data2, distances, input, iszip):
                 if currinp == enu[0]:
                     for elmne in distances[enu[0].split(".")[0] + ".csv"]:
                         cgrad1 = []
-
-                        disty = distance_finder(list(data2.values())[0], elmne)
+                        try:
+                            disty = distance_finder(list(data2.values())[0], elmne)
+                        except:
+                            disty = elmne
                         listodis.append(disty)
                     cgrad1 = (
                         scale2.fit_transform(array(listodis).reshape(-1, 1))
@@ -2356,13 +2368,16 @@ def generate_graphs(n, ismade, data2, distances, input, iszip):
                     for elmne in distances[enu[0].split(".")[0] + ".csv"]:
                         cgrad1 = []
                         l = list(data2.values())
-                        disty = distance_finder2d(
-                            [
-                                list(data2.values())[0][f[0]],
-                                list(data2.values())[0][f[1]],
-                            ],
-                            [elmne[f[0]], elmne[f[1]]],
-                        )
+                        try:
+                            disty = distance_finder2d(
+                                [
+                                    list(data2.values())[0][f[0]],
+                                    list(data2.values())[0][f[1]],
+                                ],
+                                [elmne[f[0]], elmne[f[1]]],
+                            )
+                        except:
+                            disty = elmne
                         listodis.append(disty)
                     cgrad1 = (
                         scale2.fit_transform(array(listodis).reshape(-1, 1))
@@ -2388,10 +2403,7 @@ def generate_graphs(n, ismade, data2, distances, input, iszip):
                         hoverinfo=["text"],
                         hovertext=list(data2.keys())[0],
                         marker=dict(
-                            size=12,
-                            color="blue",
-                            symbol="diamond",
-                            opacity=0.95,
+                            size=12, color="blue", symbol="diamond", opacity=0.95,
                         ),
                     )
 
@@ -2430,10 +2442,7 @@ def generate_graphs(n, ismade, data2, distances, input, iszip):
                         hoverinfo="text",
                         customdata=[Linuxfix(list(data2.keys())[0], -1)],
                         marker=dict(
-                            size=12,
-                            color="blue",
-                            symbol="diamond",
-                            opacity=0.95,
+                            size=12, color="blue", symbol="diamond", opacity=0.95,
                         ),
                     )
 
